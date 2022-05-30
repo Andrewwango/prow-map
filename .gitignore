@@ -2,6 +2,9 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.graphml
+*.gpx
+*.csv
 
 # C extensions
 *.so
