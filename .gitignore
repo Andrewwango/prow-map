@@ -5,6 +5,7 @@ __pycache__/
 *.graphml
 *.gpx
 *.csv
+*.shp
 
 # C extensions
 *.so
