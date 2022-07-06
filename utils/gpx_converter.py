@@ -25,7 +25,7 @@ class Converter(object):
             self.input_extension = os.path.splitext(input_file)[1].lower()
             # print(self.extension)
 
-    def _gpx_to_dict(self, lats_colname="latitude", longs_colname="longitude", times_colname="time", alts_colname="altitude", trackno_colname="trackid"):
+    def _gpx_to_dict(self, lats_colname="latitude", longs_colname="longitude", times_colname="time", alts_colname="altitude", trackno_colname="trackid", i=None):
         longs, lats, times, alts, ts = [], [], [], [], []
 
         with open(self.input_file, 'r') as gpxfile:
@@ -37,7 +37,7 @@ class Converter(object):
                         longs.append(point.longitude)
                         times.append(point.time)
                         alts.append(point.elevation)
-                        ts.append(t)
+                        ts.append(t if i is None else i)
         if any(times) and any(alts):
             return {trackno_colname: ts, times_colname: times, lats_colname: lats, longs_colname: longs, alts_colname: alts}
         elif any(times):
@@ -50,7 +50,7 @@ class Converter(object):
     def gpx_to_dictionary(self, latitude_key="latitude", longitude_key="longitude", time_key="time", altitude_key="altitude", trackno_key="trackid"):
         return self._gpx_to_dict(lats_colname=latitude_key, longs_colname=longitude_key, times_colname=time_key, alts_colname=altitude_key, trackno_colname=trackno_key)
 
-    def gpx_to_dataframe(self, lats_colname="latitude", longs_colname="longitude", times_colname="time", alts_colname="altitude", trackno_colname="trackid"):
+    def gpx_to_dataframe(self, lats_colname="latitude", longs_colname="longitude", times_colname="time", alts_colname="altitude", trackno_colname="trackid", i=None):
         """
         convert gpx file to a pandas dataframe
         lats_colname: name of the latitudes column
@@ -68,7 +68,8 @@ class Converter(object):
                                                       longs_colname=longs_colname,
                                                       times_colname=times_colname,
                                                       alts_colname=alts_colname,
-                                                      trackno_colname=trackno_colname))
+                                                      trackno_colname=trackno_colname,
+                                                      i=i))
         return df
 
     def gpx_to_numpy_array(self):
