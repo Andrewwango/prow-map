@@ -1,5 +1,7 @@
 import pandas as pd
 import numpy as np
+import osmnx as ox
+import networkx as nx
 
 ADDITIONAL_EDGE_DTYPES = {"row":bool, "activity":float}
 
@@ -8,8 +10,9 @@ THRESH_EDGE_MAX_POINT_SEPARATION_PUBLIC_GPS = 30 #metres between points on edge
 THRESH_EDGE_MAX_POINT_SEPARATION_ROW_GPS = 3000 
 THRESH_INTERPOLATION_JUMP_DIST = 200 #metres between points to stop interpolation
 THRESH_SPURIOUS_GPS_POINT_COUNT = 4 #points
+THRESH_LARGE_SUBGRAPH_LENGTH = 200 #metres
 INTERPOLATION_DIST_NEAREST_EDGE = 5 #metres
-INTERPOLATION_DIST_ROW_GPS = 20 #metres
+INTERPOLATION_DIST_ROW_GPS = 5 #20#metres
 INTERPOLATION_DIST_PUBLIC_GPS = 5 #metres
 
 MAX_ACTIVITY = 20
@@ -25,7 +28,6 @@ def metres_to_dist(m):
 
 def threshold_on_col(df, colname="dist", thresh=THRESH_EDGE_MATCH_DIST):
     df_thresh = df.loc[df[colname] < thresh]
-    #TODO: delete rows for which their trackno only appears less than thresh times (i.e. 4 times)
     return df_thresh.reset_index()
 
 def count_unique_tracks(df, trackno_colname="trackid"):
@@ -76,3 +78,9 @@ def merge_on_edges(df1, df2, hows=["inner", "left_only"], keys=['u','v','key'], 
 
 def raw_activity_to_percentage(a):
     return np.clip(a * 100 / MAX_ACTIVITY , 0, 100)
+
+def filter_large_subgraphs(nodes, edges, thresh=THRESH_LARGE_SUBGRAPH_LENGTH):
+    G = ox.graph_from_gdfs(nodes, edges).to_undirected()
+    subgraphs = [G.subgraph(c).copy() for c in nx.connected_components(G) if ox.stats.edge_length_total(G.subgraph(c)) > thresh]
+    recon = nx.compose_all(subgraphs)
+    return ox.graph_to_gdfs(recon, nodes=False, edges=True)

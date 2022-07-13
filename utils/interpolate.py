@@ -20,12 +20,12 @@ def split_dirty_track(df, dist_func="euclidean", thresh=utils.THRESH_INTERPOLATI
     return np.split(df, split_indices + 1)
     
 
-def geo_interpolate_df(df, lat_colname="latitude", lon_colname="longitude", trackno_colname="trackid", dist_m=20, track_points_thresh=utils.THRESH_SPURIOUS_GPS_POINT_COUNT):   
-    segments = split_dirty_track(df) #split df into defined sections based on interpoint distance. This alleviates both the truncated edge and dirty tracks problem.
+def geo_interpolate_df(df, lat_colname="latitude", lon_colname="longitude", trackno_colname="trackid", dist_m=20, track_points_thresh=utils.THRESH_SPURIOUS_GPS_POINT_COUNT, segmentation=True):   
+    segments = split_dirty_track(df) if segmentation else [df] #split df into defined sections based on interpoint distance. This alleviates both the truncated edge and dirty tracks problem.
     out_dfs = []
     debug=[]
     for i,segment in enumerate(segments):
-        if len(segment) <= track_points_thresh:
+        if (len(segment) <= track_points_thresh) and segmentation:
             debug.append(len(segment))
             continue
         else:
@@ -41,9 +41,9 @@ def geo_interpolate_df(df, lat_colname="latitude", lon_colname="longitude", trac
     ret_df[trackno_colname] = df[trackno_colname].iloc[0]
     return ret_df
 
-def batch_geo_interpolate_df(raw_df, lat_colname="latitude", lon_colname="longitude", trackno_colname="trackid", dist_m=20):
+def batch_geo_interpolate_df(raw_df, lat_colname="latitude", lon_colname="longitude", trackno_colname="trackid", dist_m=20, segmentation=True):
     
-    interpolated_tracks_dfs = [geo_interpolate_df(y, lat_colname=lat_colname, lon_colname=lon_colname, trackno_colname=trackno_colname, dist_m=dist_m) \
+    interpolated_tracks_dfs = [geo_interpolate_df(y, lat_colname=lat_colname, lon_colname=lon_colname, trackno_colname=trackno_colname, dist_m=dist_m, segmentation=segmentation) \
                                for x, y in tqdm(raw_df.groupby(trackno_colname, as_index=False))]
     
     return pd.concat(interpolated_tracks_dfs, ignore_index=True)
