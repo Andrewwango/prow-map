@@ -15,4 +15,12 @@ map_busynonrow = plot_graph_folium(G_busynonrow, tiles="OpenStreetMap", activity
 
 #map_busynonrow = plot_map()
 #print(map_busynonrow)
+
+"# Footpath access map"
+
+"Showing map of OSM network paths that have some activity but are not RoW. Yellow-red = low-high activity"
+
+"**Region**: 'east-of-england'"
+"**Authority**: 'Bedford, UK'"
+
 folium_static(map_busynonrow)
