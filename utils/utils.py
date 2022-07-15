@@ -5,6 +5,7 @@ import networkx as nx
 
 ADDITIONAL_EDGE_DTYPES = {"row":bool, "activity":float}
 
+SPLIT_POLYGON_BOX_LENGTH = 10000 #metres
 THRESH_EDGE_MATCH_DIST = 20 #metres from points to edges
 THRESH_EDGE_MAX_POINT_SEPARATION_PUBLIC_GPS = 30 #metres between points on edge
 THRESH_EDGE_MAX_POINT_SEPARATION_ROW_GPS = 3000 
