@@ -2,13 +2,12 @@
 __pycache__/
 *.py[cod]
 *$py.class
+*.gpx
+*.json
 *.graphml
 !output/east-of-england_BN.graphml
-!output/east-of-england_BR.graphml
-*.gpx
 *.csv
 *.shp
-*.json
 
 # C extensions
 *.so
