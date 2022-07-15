@@ -6,6 +6,7 @@ __pycache__/
 *.json
 *.graphml
 !output/east-of-england_BN.graphml
+!output/east-of-england_BR.graphml
 *.csv
 *.shp
 
