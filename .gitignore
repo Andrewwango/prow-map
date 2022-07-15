@@ -3,6 +3,8 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.graphml
+!output/east-of-england_BN.graphml
+!output/east-of-england_BR.graphml
 *.gpx
 *.csv
 *.shp

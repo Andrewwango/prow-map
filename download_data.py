@@ -3,6 +3,7 @@ import os, requests
 from pathlib import Path
 from tqdm import tqdm
 import osmnx as ox
+import networkx as nx
 import geopandas as gpd
 
 from utils.utils import *
@@ -12,13 +13,11 @@ import utils.authority_names
 
 def download_public_gps_data(region, fn=""):
     csv_fn = fn+".csv"
-    try:
-        pd.read_csv(csv_fn)
+    if os.path.isfile(csv_fn):
         print(f"Public GPS data found at {csv_fn}")
         return
-    except FileNotFoundError:
-        print(f"Downloading to {csv_fn}...")
     
+    print(f"Downloading to {csv_fn}...")
     os.system("echo Starting download...")
     os.system(f"curl -o {fn}.tar.xz http://zverik.openstreetmap.ru/gps/files/extracts/europe/great_britain/{region}.tar.xz")
     os.system("echo Unzipping...")
@@ -45,8 +44,13 @@ def download_public_gps_data(region, fn=""):
     print("Done")
 
 def download_row_data(authorities_list, fn=""):
-    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0) Gecko/20100101 Firefox/55.0',}
+    csv_fn = fn+".csv"
+    if os.path.isfile(csv_fn):
+        print(f"RoW data found at {csv_fn}")
+        return
     
+    print(f"Downloading to {csv_fn}...")
+    headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0) Gecko/20100101 Firefox/55.0',}
     final_interpolated_row_dfs = []
     
     for i,authority in enumerate(authorities_list):
@@ -73,7 +77,7 @@ def download_row_data(authorities_list, fn=""):
         
         print("Done")
     
-    pd.concat(final_interpolated_row_dfs, ignore_index=True).to_csv(fn+".csv")
+    pd.concat(final_interpolated_row_dfs, ignore_index=True).to_csv(csv_fn)
 
 def get_graph_boundary(authorities_list):
     gdf = ox.geocode_to_gdf(authorities_list, buffer_dist=10)#500
@@ -90,4 +94,18 @@ def get_graph_boundary(authorities_list):
     return polygons
 
 def download_graphs(graph_boundary, fn=""):
-    pass
+    print("Downloading...")
+    for i,geom in tqdm(enumerate(graph_boundary)):
+        if os.path.isfile(f"{fn}_{i}.graphml"):
+            print(f"Graph found for {i}th geometry, continuing")
+            continue
+
+        try:
+            G = ox.graph_from_polygon(geom,
+                           custom_filter='["highway"~"footway|cycleway|bridleway|path|track"]', 
+                           retain_all=True, simplify=False).to_undirected()
+        except ValueError:
+            G = nx.MultiGraph() #empty
+        
+        ox.save_graphml(G, f"{fn}_{i}.graphml")
+    print("Done")

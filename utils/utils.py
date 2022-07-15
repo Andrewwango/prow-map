@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import osmnx as ox
 import networkx as nx
+from matplotlib.path import Path
 
 ADDITIONAL_EDGE_DTYPES = {"row":bool, "activity":float}
 
@@ -9,7 +10,7 @@ SPLIT_POLYGON_BOX_LENGTH = 10000 #metres
 THRESH_EDGE_MATCH_DIST = 20 #metres from points to edges
 THRESH_EDGE_MAX_POINT_SEPARATION_PUBLIC_GPS = 30 #metres between points on edge
 THRESH_EDGE_MAX_POINT_SEPARATION_ROW_GPS = 3000 
-THRESH_INTERPOLATION_JUMP_DIST = 200 #metres between points to stop interpolation
+THRESH_INTERPOLATION_JUMP_DIST = 200 #200 #metres between points to stop interpolation
 THRESH_SPURIOUS_GPS_POINT_COUNT = 4 #points
 THRESH_LARGE_SUBGRAPH_LENGTH = 200 #metres
 INTERPOLATION_DIST_NEAREST_EDGE = 5 #metres
@@ -78,10 +79,17 @@ def merge_on_edges(df1, df2, hows=["inner", "left_only"], keys=['u','v','key'], 
     return outs
 
 def raw_activity_to_percentage(a):
-    return np.clip(a * 100 / MAX_ACTIVITY , 0, 100)
+    return np.clip(a * 70 / MAX_ACTIVITY , 0, 70) + 30
 
 def filter_large_subgraphs(nodes, edges, thresh=THRESH_LARGE_SUBGRAPH_LENGTH):
     G = ox.graph_from_gdfs(nodes, edges).to_undirected()
     subgraphs = [G.subgraph(c).copy() for c in nx.connected_components(G) if ox.stats.edge_length_total(G.subgraph(c)) > thresh]
     recon = nx.compose_all(subgraphs)
     return ox.graph_to_gdfs(recon, nodes=False, edges=True)
+
+def points_in_polygon(geometry, df, lat_colname="latitude", lon_colname="longitude"):
+    
+    df_1 = df.loc[in_box(df[lat_colname], df[lon_colname], bbox=geometry.bounds)]
+    points = df_1[[lon_colname, lat_colname]].to_numpy()
+    inside = Path(geometry.boundary).contains_points(points)
+    return df_1[inside].reset_index()
