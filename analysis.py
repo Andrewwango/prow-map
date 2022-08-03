@@ -1,3 +1,4 @@
+import os
 import numpy as np
 import pandas as pd
 import geopandas as gpd
@@ -9,9 +10,12 @@ from tqdm import tqdm
 from utils.utils import *
 from utils.interpolate import batch_geo_interpolate_df
 
-def save_undirected_graph(nodes, edges, fn, ret=False):
+def check_analysis_exists(fn):
+    return os.path.isfile(f"{fn}_P.graphml") and os.path.isfile(f"{fn}_B.graphml") and os.path.isfile(f"{fn}_R.graphml")
+                                                            
+def save_undirected_graph(nodes, edges, fn, ret=False, save=True):
     G = ox.graph_from_gdfs(nodes, edges).to_undirected()
-    ox.save_graphml(G, fn)
+    if save: ox.save_graphml(G, fn)
     if ret: return G
 
 def match_public_data_with_edges(public_df, graph_edges, graph_nodes, G):
@@ -46,14 +50,18 @@ def match_row_data_with_edges(row_df, graph_edges, graph_nodes, G):
     return matched_graph_edges_row
 
 def join_public_row_edges(public_edges, row_edges, graph_nodes, edge_dtypes=None):
-    df1, df2 = merge_on_edges(public_edges, row_edges, hows=["inner", "left_only"], del_cols=["count, tracks"])
+    df1, df2, df3 = merge_on_edges(public_edges, row_edges, hows=["inner", "left_only", "right_only"], del_cols=["count, tracks"])
 
     df1["row"] = df1["row"] == 1
     df2["row"] = df2["row"] == 1
+    df3["row"] = df3["row"] == 1
+    df3["activity"] = 0
     
     dtypes = dict([(i, edge_dtypes[i]) for i in edge_dtypes.keys() if i in df1.columns])
+    #df3 = df3.astype(dtypes)
     
-    public_row_df = pd.concat([df1, df2], axis=0).astype(dtypes)
+    
+    public_row_df = pd.concat([df1, df2, df3], axis=0).astype(dtypes)
     public_row_df["activity"] = raw_activity_to_percentage(public_row_df["activity"])
     
     return public_row_df
@@ -65,12 +73,22 @@ def analyse_batch(row_data="", public_data="", graph_data="", graph_boundary=Non
     all_public_df = pd.read_csv(public_data+".csv")
     all_row_df = pd.read_csv(row_data+".csv")
     
-    all_G_BR = []
-    all_G_BN = []
+    all_G_P = []
+    all_G_B = []
+    all_G_R = []
     
     for i,geom in tqdm(enumerate(graph_boundary)):
         print("Starting analysis for geometry", i)
         #if i>0: break
+        
+        if os.path.isfile(f"{out_fn}_P_{i}.graphml") and os.path.isfile(f"{out_fn}_B_{i}.graphml") and os.path.isfile(f"{out_fn}_R_{i}.graphml"):
+            G_P = ox.load_graphml(f"{out_fn}_P_{i}.graphml")
+            G_B = ox.load_graphml(f"{out_fn}_B_{i}.graphml")
+            G_R = ox.load_graphml(f"{out_fn}_R_{i}.graphml")
+            all_G_P += [G_P]
+            all_G_B += [G_B]
+            all_G_R += [G_R]
+            continue
         
         # Retrieve graph data
         G = ox.load_graphml(f"{graph_data}_{i}.graphml")
@@ -98,24 +116,29 @@ def analyse_batch(row_data="", public_data="", graph_data="", graph_boundary=Non
         matched_graph_edges_row = match_row_data_with_edges(row_df, graph_edges, graph_nodes, G)
         
         # Save temp analysis
-        save_undirected_graph(graph_nodes, matched_graph_edges_public, f"{out_fn}_public_{i}.graphml")
-        save_undirected_graph(graph_nodes, matched_graph_edges_row,    f"{out_fn}_row_{i}.graphml")
+        #save_undirected_graph(graph_nodes, matched_graph_edges_public, f"{out_fn}_public_{i}.graphml")
+        #save_undirected_graph(graph_nodes, matched_graph_edges_row,    f"{out_fn}_row_{i}.graphml")
         
         # Join these two graph edge dataframes
         print("Joining public and RoW data")
         public_row_df = join_public_row_edges(matched_graph_edges_public, matched_graph_edges_row, graph_nodes, edge_dtypes=graph_edges.dtypes.to_dict())
         
-        G_BR = save_undirected_graph(graph_nodes, public_row_df[public_row_df["row"] == True], f"{out_fn}_BR_{i}.graphml", ret=True)
-        G_BN = save_undirected_graph(graph_nodes, public_row_df[public_row_df["row"] == False], f"{out_fn}_BN_{i}.graphml", ret=True)
+        R = public_row_df["row"] == True
+        P = public_row_df["activity"] > 0
         
-        all_G_BR += [G_BR]
-        all_G_BN += [G_BN]
+        G_P = save_undirected_graph(graph_nodes, public_row_df[P & ~R], f"{out_fn}_P_{i}.graphml", ret=True, save=True)
+        G_B = save_undirected_graph(graph_nodes, public_row_df[P &  R], f"{out_fn}_B_{i}.graphml", ret=True, save=True)
+        G_R = save_undirected_graph(graph_nodes, public_row_df[~P & R], f"{out_fn}_R_{i}.graphml", ret=True, save=True)
+        
+        all_G_P += [G_P]
+        all_G_B += [G_B]
+        all_G_R += [G_R]
         
         print("Done")
     
-    ox.save_graphml(nx.compose_all(all_G_BR), f"{out_fn}_BR.graphml")
-    ox.save_graphml(nx.compose_all(all_G_BN), f"{out_fn}_BN.graphml")
-
+    ox.save_graphml(nx.compose_all(all_G_P), f"{out_fn}_P.graphml")
+    ox.save_graphml(nx.compose_all(all_G_B), f"{out_fn}_B.graphml")
+    ox.save_graphml(nx.compose_all(all_G_R), f"{out_fn}_R.graphml")
 
         
         

@@ -43,7 +43,7 @@ def download_public_gps_data(region, fn=""):
     
     print("Done")
 
-def download_row_data(authorities_list, fn=""):
+def download_row_data(authority_code, fn=""):
     csv_fn = fn+".csv"
     if os.path.isfile(csv_fn):
         print(f"RoW data found at {csv_fn}")
@@ -51,38 +51,36 @@ def download_row_data(authorities_list, fn=""):
     
     print(f"Downloading to {csv_fn}...")
     headers = {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.12; rv:55.0) Gecko/20100101 Firefox/55.0',}
-    final_interpolated_row_dfs = []
+    #final_interpolated_row_dfs = []
     
-    for i,authority in enumerate(authorities_list):
-        authority_short = authority.split(", ")[0]
-        authority_code = utils.authority_names.reverse_search(authority_short)
-        
-        print("Downloading RoW data for ", authority_short, authority_code)
-        row_response = requests.get("https://www.rowmaps.com/getgpx.php", params={"l": authority_code, "w": "no"}, headers=headers)
-        
-        fn_head = f"{fn}_{authority_code}"
-        with open(fn_head+".gpx", "wb") as f:
-            f.write(row_response.content)
-            #TODO: skip this step and pass content directly to converter
-        
-        print("Converting...")
-        row_raw_df = gpx_converter.Converter(input_file=fn_head+".gpx").gpx_to_dataframe()
-        
-        row_raw_df["trackid"] += i * 1000000
-        
-        print("Interpolating...")
-        row_df = batch_geo_interpolate_df(row_raw_df, dist_m=INTERPOLATION_DIST_ROW_GPS, segmentation=False)
-        
-        final_interpolated_row_dfs += [row_df]
-        
-        print("Done")
-    
-    pd.concat(final_interpolated_row_dfs, ignore_index=True).to_csv(csv_fn)
+    print("Downloading RoW data for ", authority_code)
+    row_response = requests.get("https://www.rowmaps.com/getgpx.php", params={"l": authority_code, "w": "no"}, headers=headers)
 
-def get_graph_boundary(authorities_list):
-    gdf = ox.geocode_to_gdf(authorities_list, buffer_dist=10)#500
+    with open(fn+".gpx", "wb") as f:
+        f.write(row_response.content)
+        #TODO: skip this step and pass content directly to converter
+
+    print("Converting...")
+    row_raw_df = gpx_converter.Converter(input_file=fn+".gpx").gpx_to_dataframe()
+
+    #row_raw_df["trackid"] += i * 1000000
+
+    print("Interpolating...")
+    row_df = batch_geo_interpolate_df(row_raw_df, dist_m=INTERPOLATION_DIST_ROW_GPS, segmentation=False)
+
+    #final_interpolated_row_dfs += [row_df]
+
+    print("Done")
     
-    if len(authorities_list) > 1:
+    #pd.concat(final_interpolated_row_dfs, ignore_index=True).to_csv(csv_fn)
+    row_df.to_csv(csv_fn)
+    
+
+def get_graph_boundary(authority):
+    authority = [authority]
+    gdf = ox.geocode_to_gdf(authority, buffer_dist=10)#500
+    
+    if len(authority) > 1:
         geom = gdf["geometry"].unary_union
     else:
         geom = gdf["geometry"][0]

@@ -26,11 +26,16 @@ def geo_interpolate_df(df, lat_colname="latitude", lon_colname="longitude", trac
     out_dfs = []
     debug=[]
     for i,segment in enumerate(segments):
-        if (len(segment) <= track_points_thresh) and segmentation:
+        if ((len(segment) <= track_points_thresh) and segmentation) or ((len(segment) == 1) and not segmentation):
             debug.append(len(segment))
             continue
         else:
-            ls = LineString(segment[[lat_colname, lon_colname]].to_numpy())
+            try:
+                ls = LineString(segment[[lat_colname, lon_colname]].to_numpy())
+            except:
+                print(i, segmentation, segment[[lat_colname, lon_colname]])
+                raise ValueError
+            #print("ls",ls)
             interpolated = ox.utils_geo.interpolate_points(ls, dist=utils.metres_to_dist(dist_m))
             interpolated_df = pd.DataFrame(interpolated, columns=[lat_colname, lon_colname])
             interpolated_df["tracksegid"] = i

@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 import osmnx as ox
+import geopandas as gpd
 import networkx as nx
 from matplotlib.path import Path
 
@@ -70,7 +71,7 @@ def merge_on_edges(df1, df2, hows=["inner", "left_only"], keys=['u','v','key'], 
     del_cols += ["_delete", "_merge"]
     for how in hows:
         h = "outer" if how in ["left_only", "right_only", "outer"] else "inner"
-        df = pd.merge(df1, df2, on=keys, how=h, indicator=True, suffixes=['', '_delete'])
+        df = pd.merge(df1, df2, on=keys, how=h, indicator=True, suffixes=['_delete', ''] if how=="right_only" else ['', '_delete'])
         if how in ["left_only", "right_only"]:
             df = df[df['_merge']==how]
         df = df[[c for c in df.columns if not check_del(c, del_cols)]]
@@ -79,12 +80,16 @@ def merge_on_edges(df1, df2, hows=["inner", "left_only"], keys=['u','v','key'], 
     return outs
 
 def raw_activity_to_percentage(a):
-    return np.clip(a * 70 / MAX_ACTIVITY , 0, 70) + 30
+    return np.clip(a * 100 / MAX_ACTIVITY , 0, 100)
 
 def filter_large_subgraphs(nodes, edges, thresh=THRESH_LARGE_SUBGRAPH_LENGTH):
     G = ox.graph_from_gdfs(nodes, edges).to_undirected()
     subgraphs = [G.subgraph(c).copy() for c in nx.connected_components(G) if ox.stats.edge_length_total(G.subgraph(c)) > thresh]
-    recon = nx.compose_all(subgraphs)
+    if len(subgraphs) > 0:
+        recon = nx.compose_all(subgraphs)
+    else:
+        recon = [G.subgraph(c).copy() for c in nx.connected_components(G)][0]
+        #return gpd.GeoDataFrame(columns=edges.columns, crs=G.graph["crs"])
     return ox.graph_to_gdfs(recon, nodes=False, edges=True)
 
 def points_in_polygon(geometry, df, lat_colname="latitude", lon_colname="longitude"):
