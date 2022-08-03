@@ -13,6 +13,7 @@ st.set_page_config(page_title='prow web-app', page_icon=':world-map:')
 
 "Showing map of OSM network paths that have some activity but are not RoW. Yellow-red = low-high activity"
 
+"Check out the [blog](https://andrewwango.github.io/prow_ml/) for why and how!"
 
 authority_codes = list(set([f.split("_")[0] for f in os.listdir("output")]))
 analysis_types = {
