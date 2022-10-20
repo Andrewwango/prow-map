@@ -132,11 +132,11 @@ def _make_folium_polyline(geom, popup_val=None, activity_val=None, **kwargs):
 def _activity_to_colour(activity_val):
     if activity_val < 0:
         r = g = 0
-        b = 255
-    else:
-        activity_val = activity_val/100 * 0.7 + 0.3
-        r = 255
-        g = int(255 - 255*activity_val)
         b = 0
+    else:
+        activity_val = activity_val/100 * 0.9 + 0.1
+        r = 255
+        g = 0
+        b = int(255 - 255*activity_val)
     
     return "#%s%s%s" % tuple([hex(c)[2:].rjust(2, "0") for c in (r, g, b)])

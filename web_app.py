@@ -3,9 +3,6 @@ import os
 import streamlit as st
 from streamlit_folium import st_folium, folium_static
 
-import osmnx as ox
-import networkx as nx
-
 from prow import compose_graphs_plot_folium
 from prow.utils import plot_graph_folium, ADDITIONAL_EDGE_DTYPES, conversions
 

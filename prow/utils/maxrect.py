@@ -1,8 +1,6 @@
-
 import numpy as np
 import cvxpy
 from shapely.geometry import Polygon
-
 
 def rect2poly(ll, ur):
     """

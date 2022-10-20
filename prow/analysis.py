@@ -8,8 +8,8 @@ import osmnx as ox
 import networkx as nx
 from tqdm import tqdm
 
-from utils.utils import *
-from utils.interpolate import batch_geo_interpolate_df
+from .utils.utils import *
+from .utils.interpolate import batch_geo_interpolate_df
 
 def check_analysis_exists(fn):
     return os.path.isfile(f"{fn}_P.graphml") and os.path.isfile(f"{fn}_B.graphml") and os.path.isfile(f"{fn}_R.graphml")

@@ -2,9 +2,10 @@ import numpy as np
 import pandas as pd
 
 import osmnx as ox
+import networkx as nx
 
-from utils.custom_plot_graph_folium import plot_graph_folium
-from utils.utils import ADDITIONAL_EDGE_DTYPES
+from .utils.custom_plot_graph_folium import plot_graph_folium
+from .utils.utils import ADDITIONAL_EDGE_DTYPES
 
 def compose_graphs_plot_folium(fn_graphs, fn_graph_prefix="", fn_vis=None, graph_edge_funcs=None, return_map=False):
 

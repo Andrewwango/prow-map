@@ -1,6 +1,6 @@
-import download_data, analysis
-from vis import compose_graphs_plot_folium
-from utils.authority_names import reverse_search
+from . import download_data, analysis
+from .vis import compose_graphs_plot_folium
+from .utils.authority_names import reverse_search
 
 def batch_prow_analyse_authorities(authorities, fn_data_prefix="data", fn_out_prefix="output"):
     for authority, region in authorities:

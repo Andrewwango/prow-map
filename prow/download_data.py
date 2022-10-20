@@ -6,10 +6,9 @@ import osmnx as ox
 import networkx as nx
 import geopandas as gpd
 
-from utils.utils import *
-from utils import gpx_converter
-from utils.interpolate import batch_geo_interpolate_df
-import utils.authority_names
+from .utils.utils import *
+from .utils import gpx_converter
+from .utils.interpolate import batch_geo_interpolate_df
 
 def download_public_gps_data(region, fn=""):
     csv_fn = fn+".csv"
