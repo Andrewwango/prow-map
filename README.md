@@ -1,6 +1,6 @@
-# Land access research: discovering lost rights of way using public data
+# Land access research: reclaiming public rights of way using public data
 
-The code in this repository performs analysis of public GPX data and UK rights of way. See the outputs of the analysis here:
+The code in this repository performs analysis of public GPX data and rights of way in England and Wales. See the outputs of the analysis here:
 
 - Article published on earth.org: [Why Improving UK Land Access Rights Is Important For A More Sustainable Outdoors](https://earth.org/data_visualization/uk-land-access-rights/).
 - Blog post: [Land access research: discovering lost rights of way using public data](https://andrewwango.github.io/prow_ml/) 
@@ -44,10 +44,10 @@ The aim here is to combine the data detailing public usage of paths with the PRo
 ## Repo folder structure
 ```
 data
-|____osmnx _data download folder for OSM base path network_
-|____public _data download folder for public GPS data_
-|____row _data download folder for rights of way data_
-output _output graphs and HTML maps from analysis_
-prow _Python module for analysis code_
-|____utils _helper functions for analysis_
+|____osmnx (data download folder for OSM base path network)
+|____public (data download folder for public GPS data)
+|____row (data download folder for rights of way data)
+output (output graphs and HTML maps from analysis)
+prow (Python module for analysis code)
+|____utils (helper functions for analysis)
 ```
