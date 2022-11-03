@@ -1,6 +1,10 @@
+"""
+Modified code to plot custom folium graph maps with different colours etc.
+Original code from osmnx.folium.
+"""
+import json
 import folium
 from osmnx import utils_graph
-import json
 
 def plot_graph_folium(
     G,
@@ -129,7 +133,18 @@ def _make_folium_polyline(geom, popup_val=None, activity_val=None, **kwargs):
     pl = folium.PolyLine(locations=locations, popup=popup, color=_activity_to_colour(activity_val), **kwargs)
     return pl
 
-def _activity_to_colour(activity_val):
+def _activity_to_colour(activity_val: float) -> str:
+    """Convert activity percentage (0-100) to colour value 
+
+    Args:
+        activity_val (float): value of activity normalised between 0 and 100
+
+    Returns:
+        str: #hex value of colour. Colour is calculated as follows:
+        - Negative activity (i.e. special value to distinguish e.g. RoW): Black
+        - Low activity: towards magenta
+        - High activity: towards red
+    """
     if activity_val < 0:
         r = g = 0
         b = 0

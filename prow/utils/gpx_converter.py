@@ -1,4 +1,7 @@
-"""Top-level package for gpx_converter."""
+"""
+Modified gpx_converter module code, to add track IDs to attributes
+when converting gpx to tabular
+"""
 
 import gpxpy
 import pandas as pd

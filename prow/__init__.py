@@ -1,8 +1,28 @@
+"""
+Module for performing PRoW vs public GPX data analysis.
+"""
+
 from . import download_data, analysis
 from .vis import compose_graphs_plot_folium
 from .utils.authority_names import reverse_search
 
-def batch_prow_analyse_authorities(authorities, fn_data_prefix="data", fn_out_prefix="output"):
+def batch_prow_analyse_authorities(authorities: list, fn_data_prefix="data", fn_out_prefix="output") -> None:
+    """Run full analysis pipeline of PRoW vs public GPX data, for given batch of authorities. For each authority,
+    output 3 undiredcted networkx.MultiGraph graphs containing paths as edges and intersections as nodes.
+    Eacb graph consists of...
+    1. "B": paths that both have public activity and are PRoW.
+    2. "P": paths that have public activity but are not RoW (purpose of this analysis.)
+    3. "R": paths that do not have public activity but are not RoW.
+    Additionally, all edges are labelled with attribute "activity" representing percentage level of activity.
+
+    Args:
+        authorities (list): List of lists of format [authority_name, region], where authority names are from
+            those listed [here](https://www.rowmaps.com/datasets/) and regions from 
+            [here](http://zverik.openstreetmap.ru/gps/files/extracts/europe/great_britain).
+        fn_data_prefix (str, optional): Folder for saving downloaded data to. Defaults to "data".
+        fn_out_prefix (str, optional): Folder for saving output graphs. Defaults to "output".
+    """
+    
     for authority, region in authorities:
 
         authority_code = reverse_search(authority.split(", ")[0])

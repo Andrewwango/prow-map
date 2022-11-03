@@ -1,8 +1,20 @@
+"""
+List of codes and names for unitary authorities in England and Wales
+"""
 import pandas as pd
 
-def reverse_search(x):
-    df = pd.DataFrame(conversions.items(), columns=["code","authority"])
-    return df[df["authority"] == x]["code"].iloc[0]
+def reverse_search(authority_name: str) -> str:
+    """Return authority name for given authority code e.g. Barnsley -> BL
+    For forward conversion, just index authority_names.conversions dict
+
+    Args:
+        authority_name (str): supported authority name
+
+    Returns:
+        str: authority code
+    """
+    df = pd.DataFrame(conversions.items(), columns=["code", "authority"])
+    return df[df["authority"] == authority_name]["code"].iloc[0]
 
 conversions = {
       "BL":"Barnsley",
