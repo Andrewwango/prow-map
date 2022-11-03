@@ -51,3 +51,6 @@ output (output graphs and HTML maps from analysis)
 prow (Python module for analysis code)
 |____utils (helper functions for analysis)
 ```
+
+## Ethical considerations
+All input public data is anonymised and untraceable as per the OSM API.
