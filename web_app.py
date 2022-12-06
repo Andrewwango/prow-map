@@ -1,5 +1,4 @@
-import os
-
+import glob
 import streamlit as st
 from streamlit_folium import st_folium, folium_static
 
@@ -14,7 +13,7 @@ st.set_page_config(page_title='prow web-app', page_icon=':world-map:')
 
 "Check out the [blog](https://andrewwango.github.io/prow_ml/) for why and how!"
 
-authority_codes = list(set([f.split("_")[0] for f in os.listdir("output")]))
+authority_codes = list(set([f.split("_")[0] for f in glob.glob("output/*.graphml")]))
 analysis_types = {
     "P" : "Paths that have activity but aren't RoW",
     "R" : "RoW that don't have activity",
