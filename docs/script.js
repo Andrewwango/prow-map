@@ -50,7 +50,7 @@ legend.onAdd = function (map) {
 legend.addTo(map);
 
 // Boundaries
-fetch('boundaries/lad_filtered.geojson')
+fetch('geojsons/lad_filtered.geojson')
     .then(response => response.json())
     .then(data => {
         L.geoJSON(data, {
