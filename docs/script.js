@@ -33,7 +33,7 @@ async function populateMap(clean_edge_list_json_file) {
 }
 
 function onStartup() {
-    populateMap('../output/Beds_EO.json');
+    populateMap('geojsons/Beds_EO.geojson');
 }
 
 // Legend
