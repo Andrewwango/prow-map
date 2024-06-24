@@ -9,3 +9,5 @@ geopandas
 tqdm
 gpxpy
 haversine
+requests
+matplotlib

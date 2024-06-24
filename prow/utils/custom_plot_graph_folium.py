@@ -3,19 +3,22 @@ Modified code to plot custom folium graph maps with different colours etc.
 Original code from osmnx.folium.
 """
 import json
+from typing import Union, Tuple
 import folium
-from osmnx import utils_graph
+from osmnx import convert
+from networkx import MultiDiGraph
 
 def plot_graph_folium(
-    G,
+    G: MultiDiGraph,
     graph_map=None,
     popup_attribute=None,
     activity_attribute=None,
     tiles="cartodbpositron",
     zoom=1,
     fit_bounds=True,
+    clean_edge_list=False,
     **kwargs,
-):
+) -> Union[folium.Map, Tuple[folium.Map, list]]:
     """
     Plot a graph as an interactive Leaflet web map.
     Note that anything larger than a small city can produce a large web map
@@ -34,6 +37,8 @@ def plot_graph_folium(
         initial zoom level for the map
     fit_bounds : bool
         if True, fit the map to the boundaries of the graph's edges
+    return_graph_data : bool
+        Optionally return clean graph edge data as list of locations and colours
     kwargs
         keyword arguments to pass to folium.PolyLine(), see folium docs for
         options (for example `color="#333333", weight=5, opacity=0.7`)
@@ -42,8 +47,20 @@ def plot_graph_folium(
     folium.folium.Map
     """
     # create gdf of all graph edges
-    gdf_edges = utils_graph.graph_to_gdfs(G, nodes=False)
-    return _plot_folium(gdf_edges, graph_map, popup_attribute, activity_attribute, tiles, zoom, fit_bounds, **kwargs)
+    gdf_edges = convert.graph_to_gdfs(G, nodes=False)
+    
+    if clean_edge_list:
+        edge_list = [
+            {
+                "geometry": [(lat, lng) for lng, lat in edge["geometry"].coords],
+                "color": _activity_to_colour(edge[activity_attribute])
+            }
+            for _, edge in gdf_edges.iterrows()
+        ]
+    
+    map = _plot_folium(gdf_edges, graph_map, popup_attribute, activity_attribute, tiles, zoom, fit_bounds, **kwargs)
+
+    return map if not clean_edge_list else (map, edge_list)
 
 def _plot_folium(gdf, m, popup_attribute, activity_attribute, tiles, zoom, fit_bounds, **kwargs):
     """

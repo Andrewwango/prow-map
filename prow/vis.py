@@ -1,6 +1,8 @@
 """
 Functions for creating visualisations for analysis outputs
 """
+import json
+from typing import Callable, Union, Optional, Iterable
 import osmnx as ox
 import networkx as nx
 from folium import Map
@@ -8,7 +10,14 @@ from folium import Map
 from .utils.custom_plot_graph_folium import plot_graph_folium
 from .utils.utils import ADDITIONAL_EDGE_DTYPES
 
-def compose_graphs_plot_folium(fn_graphs: list, fn_graph_prefix="", fn_vis="", graph_edge_funcs=None, return_map=False) -> Map:
+def compose_graphs_plot_folium(
+        fn_graphs: Iterable[str], 
+        fn_graph_prefix: str = "", 
+        fn_vis: str = "", 
+        graph_edge_funcs: Optional[Iterable[Union[Callable, None]]] = None, 
+        return_map: bool = False,
+        clean_edge_list: bool = False,
+    ) -> Map:
     """Load output graphs from analysis, merge together, plot in Folium and output file or HTML
 
     Args:
@@ -33,8 +42,15 @@ def compose_graphs_plot_folium(fn_graphs: list, fn_graph_prefix="", fn_vis="", g
     
     graph = graphs[0] if len(graphs) == 1 else nx.compose_all(graphs)
     
-    folium_map = plot_graph_folium(graph, tiles="OpenStreetMap", activity_attribute="activity")
+    out = plot_graph_folium(graph, tiles="OpenStreetMap", activity_attribute="activity", clean_edge_list=clean_edge_list)
     
+    if clean_edge_list:
+        folium_map, edge_list = out
+        with open(fn_vis+".json", "w") as f:
+            json.dump({"edge_list": edge_list}, f)
+    else:
+        folium_map = out
+
     if fn_vis != "":
         folium_map.save(fn_vis+".html")
     
